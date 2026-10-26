@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VennCore: O Reator de Inclusão</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --panel-color: #161b22;
+            --accent-color: #58a6ff;
+            --success-color: #2ea44f;
+            --danger-color: #f85149;
+            --text-color: #c9d1d9;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow-x: hidden; }
+
+        #game-container { background: var(--panel-color); width: 950px; height: 650px; border-radius: 12px; border: 2px solid #30363d; display: flex; flex-direction: column; overflow: hidden; position: relative; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+        
+        /* Sistema de Telas */
+        .screen { display: none; width: 100%; height: 100%; padding: 30px; flex-direction: column; justify-content: space-between; position: absolute; top:0; left:0; }
+        .screen.active { display: flex; }
+
+        h1 { color: var(--accent-color); font-size: 2.5rem; text-align: center; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
+        p { line-height: 1.6; font-size: 1.1rem; text-align: justify; }
+
+        .btn { background-color: var(--accent-color); color: #fff; border: none; padding: 12px 30px; font-size: 1.1rem; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.2s, transform 0.1s; text-transform: uppercase; align-self: center; }
+        .btn:hover { background-color: #1f6feb; transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); }
+
+        /* Área de Jogo */
+        .game-layout { display: flex; width: 100%; height: 82%; gap: 20px; }
+        .sidebar { flex: 1; background: #21262d; border-radius: 8px; padding: 15px; border: 1px solid #30363d; display: flex; flex-direction: column; justify-content: space-between; }
+        .canvas-area { flex: 1.5; background: #080c10; border-radius: 8px; border: 1px solid #30363d; position: relative; display: flex; justify-content: center; align-items: center; }
+
+        /* Requisitos e Metas */
+        .objectives h3 { color: #f2cc60; margin-bottom: 10px; text-transform: uppercase; font-size: 1rem; border-bottom: 1px solid #30363d; padding-bottom: 5px;}
+        .req-item { margin: 8px 0; font-size: 1.05rem; display: flex; justify-content: space-between; align-items: center; padding: 6px; border-radius: 4px; background: rgba(255,255,255,0.02); }
+        .req-item.met { border-left: 4px solid var(--success-color); color: #56d364; background: rgba(46, 164, 79, 0.1); }
+        .req-item.unmet { border-left: 4px solid var(--danger-color); color: #ff7b72; background: rgba(248, 81, 73, 0.1); }
+
+        /* Controles de Entrada Flutuantes */
+        .input-node { position: absolute; display: flex; flex-direction: column; align-items: center; background: rgba(22, 27, 34, 0.9); border: 1px solid #444c56; border-radius: 4px; padding: 4px; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
+        .input-node label { font-size: 0.75rem; color: #8b949e; font-weight: bold; margin-bottom: 2px;}
+        .input-controls { display: flex; align-items: center; gap: 6px; }
+        .input-controls button { width: 24px; height: 24px; background: #30363d; border: 1px solid #8b949e; color: #fff; font-weight: bold; border-radius: 3px; cursor: pointer; font-size: 0.9rem; display: flex; justify-content: center; align-items: center;}
+        .input-controls button:hover { background: var(--accent-color); }
+        .input-controls span { min-width: 24px; text-align: center; font-weight: bold; font-size: 1.1rem; color: #fff; }
+
+        .game-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #30363d; padding-bottom: 10px; margin-bottom: 10px; }
+        .level-badge { background: #f2cc60; color: #000; padding: 4px 10px; font-weight: bold; border-radius: 4px; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    
+    <!-- TELA 1: INTRODUÇÃO & ENREDO -->
+    <div id="screen-intro" class="screen active">
+        <h1>VennCore: O Reator de Inclusão</h1>
+        <div style="background: #1f242c; padding: 20px; border-radius: 8px; border-left: 5px solid var(--accent-color);">
+            <h3>🛸 REGISTRO DE BORDO: ANO 2026</h3>
+            <p style="margin-top: 10px;">
+                Você é o Engenheiro-Chefe da Estação de Energia Orbitante UNIFOR-Alpha. O núcleo do reator quântico principal, 
+                controlado por fluxos magnéticos sobrepostos (**Conjuntos A, B e C**), entrou em colapso crítico de dados! 
+                As partículas subatômicas vazaram e se misturaram entre as interseções dos campos.
+            </p>
+            <p style="margin-top: 10px;">
+                Os sensores externos conseguem ler apenas a **Cardinalidade Geral** total de cada setor e de suas junções exclusivas. 
+                Sua missão é calibrar manualmente a quantidade exata de partículas em cada subdivisão isolada do diagrama. 
+                Se os valores internos não baterem exatamente com o **Princípio da Inclusão-Exclusão**, o reator explodirá!
+            </p>
+        </div>
+        <button class="btn" onclick="changeScreen('screen-instructions')">Iniciar Protocolo</button>
+    </div>
+
+        <!-- TELA 2: TUTORIAL / INSTRUÇÕES (CORRIGIDO COM CHANGESCREEN) -->
+    <div id="screen-instructions" [[changeScreen]]>
+        <h1>Instruções de Calibragem</h1>
+        <div style="display: flex; gap: 20px; text-align: left;">
+            <div style="flex: 1; background: #161b22; padding: 15px; border-radius: 8px; border: 1px solid #30363d;">
+                <h4 style="color: var(--accent-color); margin-bottom: 10px;">📐 O Princípio Matemático</h4>
+                <p style="font-size: 0.95rem; text-align: left;">
+                    Para 2 conjuntos, o total da união é:<br>
+                    <strong>n(A ∪ B) = n(A) + n(B) - n(A ∩ B)</strong>
+                </p>
+                <p style="font-size: 0.95rem; margin-top: 10px; text-align: left;">
+                    Para 3 conjuntos, adicionamos as interseções duplas e somamos a tripla:<br>
+                    <strong>n(A∪B∪C) = n(A)+n(B)+n(C) - n(A∩B) - n(B∩C) - n(A∩C) + n(A∩B∩C)</strong>
+                </p>
+            </div>
+            <div style="flex: 1; background: #161b22; padding: 15px; border-radius: 8px; border: 1px solid #30363d;">
+                <h4 style="color: #f2cc60; margin-bottom: 10px;">🎮 Como Operar o Painel</h4>
+                <p style="font-size: 0.95rem; text-align: left;">
+                    • Na tela direita, você verá o <strong>Diagrama de Venn</strong> de contenção.<br>
+                    • Use os botões <strong>[ + ]</strong> e <strong>[ - ]</strong> em cada região para injetar ou remover partículas.<br>
+                    • Na barra lateral esquerda, acompanhe as restrições em tempo real.<br>
+                    • Quando todas as luzes ficarem <strong>VERDES</strong>, o reator da fase estará estabilizado!
+                </p>
+            </div>
+        </div>
+        <!-- Chamada corrigida: muda a tela para o jogo e depois a função inicializa a primeira fase -->
+        <button class="btn" onclick="changeScreen('screen-game'); loadLevel(0);">Ir para a Cabine de Comando</button>
+    </div>
+
+
+    <!-- TELA 3: ÁREA DE JOGO ATIVO -->
+    <div id="screen-game" class="screen">
+        <div class="game-header">
+            <h2 id="level-title" style="color: #fff; font-size: 1.4rem;">Painel de Modulação de Campo</h2>
+            <div id="level-indicator" class="level-badge">Fase 1 de 5</div>
+        </div>
+
+        <div class="game-layout">
+            <div class="sidebar">
+                <div class="objectives">
+                    <h3>Metas de Cardinalidade</h3>
+                    <div id="requirements-list"></div>
+                </div>
+                <div style="background: #161b22; padding: 10px; border-radius: 6px; font-size: 0.85rem; border: 1px solid #30363d;">
+                    <span style="color: #8b949e; font-weight: bold;">Fórmula Guia:</span>
+                    <div id="formula-tip" style="color: #f2cc60; margin-top: 4px; font-family: monospace;"></div>
+                </div>
+            </div>
+
+            <div class="canvas-area" id="canvas-container">
+                <canvas id="vennCanvas" width="520" height="420"></canvas>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+            <p id="game-feedback" style="font-weight: bold; color: #f2cc60; font-size: 1rem;">Ajuste os valores para iniciar a sincronização...</p>
+            <button id="next-btn" class="btn" style="background-color: var(--success-color); display: none;" onclick="nextLevel()">Avançar Sistema</button>
+        </div>
+    </div>
+
+    <!-- TELA 4: VITÓRIA / CONCLUSÃO -->
+    <div id="screen-win" class="screen" style="text-align: center;">
+        <h1 style="color: var(--success-color);">Reator Estabilizado!</h1>
+        <div style="background: #1f242c; padding: 30px; border-radius: 8px; border: 2px solid var(--success-color); width: 80%; margin: 0 auto;">
+            <h3>🎖️ MISSÃO CUMPRIDA, ENGENHEIRO!</h3>
+            <p style="margin-top: 15px; text-align: center;">
+                Sua proficiência no <strong>Princípio da Inclusão-Exclusão</strong> salvou a estação espacial de uma 
+                explosão de antimatéria. Todos os sistemas magnéticos dos conjuntos A, B e C encontram-se em perfeita harmonia matemática.
+            </p>
+            <p style="margin-top: 15px; color: #f2cc60; font-weight: bold; text-align: center;">
+                Os dados de telemetria foram enviados com sucesso para a Central UNIFOR.
+            </p>
+        </div>
